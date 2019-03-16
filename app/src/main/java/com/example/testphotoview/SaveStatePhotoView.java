@@ -2,6 +2,7 @@ package com.example.testphotoview;
 
 import android.content.Context;
 import android.graphics.RectF;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -60,11 +61,19 @@ public class SaveStatePhotoView extends PhotoView {
         Log.d(getClass().getName(), "onRestoreInstanceState: " + ss.toString());
 
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+            private int invocationCount = 0;
+
+            // Only one layout pass for M and up. Otherwise, we'll see two and the
+            // scale set in the first pass is reset during the second pass, so the scale we
+            // set doesn't stick until the 2nd pass.
             @Override
             public void onGlobalLayout() {
                 Log.d(getClass().getName(), "onGlobalLayout: " + ss.toString());
                 restoreSavedState(ss);
-                getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M || ++invocationCount > 1) {
+                    getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
             }
         });
     }
